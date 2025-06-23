@@ -63,6 +63,8 @@ spring:
       hibernate:
         # SQL 쿼리를 보기 좋게 포맷팅
         format_sql: true
+        # in query 선택
+        default_batch_fetch_size: 10
     # data.sql 파일을 Hibernate 초기화 이후에 실행
     defer-datasource-initialization: true
     # 기본값 : 엔티티 - 카멜케이스 -> db 생성될 스네이크 케이스로 자동으로 설정 됨
