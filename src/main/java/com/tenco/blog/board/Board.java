@@ -3,12 +3,15 @@ package com.tenco.blog.board;
 import com.tenco.blog.user.User;
 import com.tenco.blog.utils.MyDateUtil;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
-
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 // 기본 생성자 - JPA 엔티티는 기본 생성자가 필요(기본 생성자를 자주 활용함)
 @Data
