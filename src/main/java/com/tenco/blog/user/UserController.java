@@ -64,6 +64,14 @@ public class UserController {
         return "user/login-form";
     }
 
+    // 로그인 액션 처리
+    // 자원에 요청은 GET 방식이다. 단 로그인 요청은 예외
+    // 보안상 이유
+    @PostMapping("/login")
+    public String login() {
+
+    }
+
     // 주소 설계 :http://localhost:8080/user/update-form
     @GetMapping("/user/update-form")
     public String updateForm() {

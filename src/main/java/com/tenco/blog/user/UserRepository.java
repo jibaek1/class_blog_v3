@@ -14,6 +14,31 @@ public class UserRepository {
 
     private final EntityManager em;
 
+    // 사용자 정보 조회 (username,password)
+
+    /**
+     * 로그인 요청 기능 (사용자 정보 조회)
+     * @param username
+     * @param password
+     * @return 성공시 User 엔티티 실패시 null 반환
+     */
+    public User findByUsernameAndPassword(String username,String password) {
+        //JPQL
+        try {
+
+
+            String jpql = "SELECT u FROM User u WHERE u.username = :username AND u.password = :password";
+
+            TypedQuery typedQuery = em.createQuery(jpql, User.class);
+            typedQuery.setParameter("username", username);
+            typedQuery.setParameter("password", password);
+            return (User) typedQuery.getSingleResult();
+        } catch (Exception e) {
+
+            return null;
+        }
+    }
+
     /**
      * 회원 정보 저장 처리
      * @param user (비영속 상태)
@@ -23,7 +48,6 @@ public class UserRepository {
     @Transactional
     public User save(User user) {
         // 매개변수에 들어오는 user object는 비영속화 된 상태이다.
-
         em.persist(user); // 영속성 컨텐스트에 user 객체를 관리하기 시작 함 persist로 유저 선언시 영속된다
         // 트랜잭션 커밋 시점에 실제 INSERT 쿼리를 실행한다.
         return user;

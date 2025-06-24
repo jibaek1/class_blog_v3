@@ -34,7 +34,7 @@ public class UserRequest {
                 throw new IllegalArgumentException("비밀번호는 명은 필수야");
             }
             // 간단한 이메일 형식 검증 (정규화 표현식)
-            if (email.contains("@")) {
+            if (email.contains("@") == false)  {
                 throw new IllegalArgumentException("올바른 이메일 형식이 아닙니다");
             }
         }

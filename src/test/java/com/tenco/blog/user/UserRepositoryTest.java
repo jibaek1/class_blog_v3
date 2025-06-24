@@ -5,15 +5,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.SqlReturnType;
 
 @Import(UserRepository.class)
 @DataJpaTest
 public class UserRepositoryTest {
 
-
-
     @Autowired // DI 처리
     private UserRepository userRepository;
+
+    @Test
+    public void findByUsernameAndPassword_로그인_성공_테스트() {
+        String username = "ssar";
+        String password = "1234";
+
+        User user = userRepository.findByUsernameAndPassword(username,password);
+
+        Assertions.assertThat(user).isNotNull(); // 로그인 성공
+        Assertions.assertThat(user.getUsername()).isEqualTo("ssar");
+    }
+
+
+
 
     @Test
     public void save_회원가입_테스트() {
