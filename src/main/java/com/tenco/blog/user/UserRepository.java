@@ -25,16 +25,15 @@ public class UserRepository {
     public User findByUsernameAndPassword(String username,String password) {
         //JPQL
         try {
-
-
-            String jpql = "SELECT u FROM User u WHERE u.username = :username AND u.password = :password";
-
+            String jpql = "SELECT u FROM User u" +
+                    " WHERE u.username = :username AND u.password = :password";
             TypedQuery typedQuery = em.createQuery(jpql, User.class);
             typedQuery.setParameter("username", username);
             typedQuery.setParameter("password", password);
             return (User) typedQuery.getSingleResult();
         } catch (Exception e) {
-
+            // 일치하는 사용자가 없거나 에러 발생 시 null 반환
+            // 즉, 로그인 실패를 의미함
             return null;
         }
     }

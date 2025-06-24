@@ -1,6 +1,7 @@
 package com.tenco.blog.user;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class UserController {
 
     private final UserRepository userRepository;
+    // httpSession <--- 세션 메모리에 접근을 할 수 있음
+    private final HttpSession httpSession;
+
 
     /**
      * 회원 가입 화면 요청
@@ -58,6 +62,10 @@ public class UserController {
     }
 
 
+    /**
+     * 로그인 화면 요청
+     * @return
+     */
     @GetMapping("/login-form")
     public String loginForm() {
         // 반환값이 뷰(파일) 이름이 됨(뷰 리졸버가 실제 파일 경로를 찾아 감)
@@ -67,9 +75,50 @@ public class UserController {
     // 로그인 액션 처리
     // 자원에 요청은 GET 방식이다. 단 로그인 요청은 예외
     // 보안상 이유
-    @PostMapping("/login")
-    public String login() {
 
+    // DTO 패턴 활용
+    // 1. 입력 데이터 검증
+    // 2. 사용자명과 비밀번호를 DB 접근해서 조회
+    // 3. 로그인 성공/실패 처리
+    // 4. 로그인 성공이라면 서버측 메모리에 사용자 정보를 저장
+    // 5. 메인 화면으로 리다이렉트 처리
+    @PostMapping("/login")
+    public String login(UserRequest.LoginDTO loginDTO) {
+
+        System.out.println("=== 로그인 시도 ===");
+        System.out.println("사용자명 : " + loginDTO.getUsername());
+
+        try {
+            // 1.
+            loginDTO.validate();
+            // 2.
+            User user = userRepository.findByUsernameAndPassword(loginDTO.getUsername(),
+                    loginDTO.getPassword());
+            // 3. 로그인 실패
+            if (user == null) {
+                // 로그인 실패 : 일치된 사용자 없음
+                throw new IllegalArgumentException("사용자명 또는 비밀번호가 틀렸어");
+            }
+
+            // 4. 로그인 성공
+            // principal은 접근 주체라는 의미를 가짐
+            httpSession.setAttribute("sessionUser",user);
+
+            // 5. 로그인 성공 후 리스트 페이지 이동
+            return "redirect:/";
+
+        } catch (Exception e) {
+            // 필요하다면 에러메세지 생성해서 내려 보냄
+            return "user/login-form";
+        }
+    }
+
+    // 로그아웃 처리
+    @GetMapping("/logout")
+    public String logout() {
+        // 세션 무효화
+        httpSession.invalidate();
+        return "redirect:/";
     }
 
     // 주소 설계 :http://localhost:8080/user/update-form
@@ -77,15 +126,6 @@ public class UserController {
     public String updateForm() {
         return "user/update-form";
     }
-
-    @GetMapping("/logout")
-    public String logout() {
-        // "redirect: " 스프링 에서 접두사를 사용하면 다른 URL로 리다이렉트 됨
-        // 즉 리다이렉트 한다는 것은 뷰를 렌더링 하지 않고 브라우저가 재 요청을
-        // 다시 하게끔 유도 한다.
-        return "redirect:/";
-    }
-
 
 
 }
