@@ -3,8 +3,10 @@ package com.tenco.blog.user;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.sql.Update;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -16,6 +18,41 @@ public class UserController {
     // httpSession <--- 세션 메모리에 접근을 할 수 있음
     private final HttpSession httpSession;
 
+    // 주소 설계 :http://localhost:8080/user/update-form
+    @GetMapping("/user/update-form")
+    public String updateForm(HttpServletRequest request,HttpSession session) {
+
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            return "redirect:/login-form";
+        }
+
+        request.setAttribute("user", sessionUser);
+        return "user/update-form";
+    }
+
+    // 회원 정보 수정 액션 처리
+    @PostMapping("/user/update")
+    public String update(UserRequest.UpdateDTO reqDTO,HttpSession session,HttpServletRequest request) {
+
+
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if(sessionUser == null) {
+            return "redirect:/login-form";
+        }
+
+        //데이터 유효성 검사 처리
+        reqDTO.validate();
+
+        // 회원 정보 수정은 권한 체크가 필요 없다 (세션에서 정보를 가져오기 때문)
+        User updateUser = userRepository.updateById(sessionUser.getId(),reqDTO);
+
+        //세션 동기화
+        session.setAttribute("sessionUser", updateUser);
+
+        // 다시 회원 정보 보기 화면 요청
+        return "redirect:/user/update-form";
+    }
 
     /**
      * 회원 가입 화면 요청
@@ -121,11 +158,6 @@ public class UserController {
         return "redirect:/";
     }
 
-    // 주소 설계 :http://localhost:8080/user/update-form
-    @GetMapping("/user/update-form")
-    public String updateForm() {
-        return "user/update-form";
-    }
 
 
 }
