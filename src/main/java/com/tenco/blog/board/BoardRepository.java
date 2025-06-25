@@ -17,6 +17,22 @@ public class BoardRepository {
 
     private final EntityManager em;
 
+    // 게시글 수정하기 - 더티 체키 활용
+    @Transactional
+    public Board updateById(Long id, BoardRequest.UpdateDTO reqDTO) {
+        // 1. 수정할 게시글을 영속 상태로 조회
+        Board board = findById(id);
+        board.setTitle(reqDTO.getTitle());
+        board.setContent(reqDTO.getContent());
+        // dirty checking 동작 과정
+        // 1. 영속성 컨텍스트가 엔티티 최초 조회 상태를 스냅샷으로 보관
+        // 2. 필드 값 변경 시 현재 상태와 스냅샷 비교
+        // 3. 트랜잭션 커밋 시점에 **변경된 필드만 UPDATE 쿼리 자동 생성**
+        return board;
+    }
+
+
+    // 게시글 삭제
     @Transactional
     public void deleteById(Long id) {
         // 1 - 네이티브 쿼리 (테이블 대상으로 질의어)

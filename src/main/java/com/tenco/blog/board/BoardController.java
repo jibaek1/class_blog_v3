@@ -19,6 +19,74 @@ public class BoardController {
     // DI 처리
     private final BoardRepository boardRepository;
 
+    // 게시글 수정하기 화면 요청
+    // /board/{{board.id}}/update-form
+
+    // 1. 인증 검사
+    // 2. 수정할 게시글 존재 여부 확인
+    // 3. 권한 체크
+    // 4. 수정 폼에 기존 데이터 뷰 바인딩 처리하기
+    @GetMapping("/board/{id}/update-form")
+    public String updateForm(@PathVariable(name = "id") Long boardId,
+                             HttpServletRequest request, HttpSession session) {
+
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            return "redirect:/login-form";
+        }
+
+        // 2.
+        Board board = boardRepository.findById(boardId);
+        if (board == null) {
+            throw new RuntimeException("수정할 게시글이 존재하지 않습니다");
+        }
+
+        // 3.
+        if ( !board.isOwner(sessionUser.getId())) {
+            throw new RuntimeException("수정 권한이 없습니다");
+        }
+
+        // 4.
+        request.setAttribute("board",board);
+
+        // 내부에서(스프링 컨테이너) 뷰 리졸브를 활용해서 머스태치 파일
+        return "board/update-form";
+    }
+
+    // 게시글 수정 액션 요청 : 더티 채킹 활용
+    // /board/11/update-form
+    // 1. 인증검사 - 로그인 체크
+    // 2. 유효성 검사 (데이터 검증)
+    // 3. 권한 체크를 위해 게시글 다시 조회
+    // 4. 더티 체킹을 통한 수정 설정
+    // 5. 수정 완료 후에 게시글 상세보기로 리다이렉트 처리
+    @PostMapping("/board/{id}/update-form")
+    public String update(@PathVariable (name = "id")Long boardId,
+                         BoardRequest.UpdateDTO reqDTO,
+                         HttpSession session) {
+
+        // 1. 인증 검사
+        User sessionUser = (User) session.getAttribute("sessionUser");
+        if (sessionUser == null) {
+            return "redirect:/login-form";
+        }
+
+        // 2. 사용자 입력값 유효성 검사
+        reqDTO.validate();
+
+        // 3. 권한 체크를 위한 조회
+        Board board = boardRepository.findById(boardId);
+        // board - 1차 캐시에 들어가 있음
+        if( ! board.isOwner(sessionUser.getId())) {
+            throw new RuntimeException("수정 권한이 없습니다");
+        }
+
+        // 4. 엔티티에 접근해서 상태 변경 <-- Controller
+        boardRepository.updateById(boardId,reqDTO);
+
+        // http://localhost:8080/board/1
+        return "redirect:/board/" + boardId;
+    }
     // 게시글 삭제 액션 처리
     // /board/{{board.id}}/delete" method="post"
 
